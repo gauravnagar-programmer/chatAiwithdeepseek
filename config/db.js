@@ -12,7 +12,7 @@ export default async function Connection() {
   if (cached.conn) return;
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then((mongoose) => mongoose);
+    cached.promise = mongoose.connect(Mongodb_Url).then((mongoose) => mongoose);
   }
   try {
     cached.conn = await cached.promise;
