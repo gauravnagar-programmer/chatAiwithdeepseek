@@ -1,6 +1,6 @@
 import { assets } from "@/assets/assets";
 import Image from "next/image";
-import { useClerk, UserButton } from "@clerk/nextjs";
+import { useClerk, UserButton, useUser } from "@clerk/nextjs";
 import { UseAppContext } from "@/context/AppContext";
 import ChatLabel from "./ChatLabel";
 import { useState } from "react";
@@ -8,7 +8,7 @@ import { useState } from "react";
 const Sidebar = ({ expand, setExpand }) => {
   const { openSignIn } = useClerk();
   const [openMenu, setOpenMenu] = useState({ id: 0, open: false });
-  const { user,isLoaded,isSignedIn } = UseAppContext();
+  const { user,isLoaded,isSignedIn } = useUser();
 
   console.log(user);
 

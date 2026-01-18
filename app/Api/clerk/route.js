@@ -7,12 +7,12 @@ import { NextResponse } from "next/server"
 export async function POST(req){
 
   const wh = new Webhook(process.env.SIGNIN_SECRET)
-  const headerPayload = await headers()
-  const svixHeaders = {
-    "svix-id" : req.headerPayload.get("svix-id"),
-    "svix-timestamp" : req.headerPayload.get("svix-timestamp"),
-    "svix-signature" : req.headerPayload.get("svix-signature")
-  }
+  const headerPayload =  headers()
+ const svixHeaders = {
+  "svix-id": headerPayload.get("svix-id"),
+  "svix-signature": headerPayload.get("svix-signature"),
+  "svix-timestamp": headerPayload.get("svix-timestamp"),
+}
 
   const payload = await req.json()
   const body = JSON.stringify(payload)
@@ -36,12 +36,10 @@ export async function POST(req){
       await userModel.findByIdAndUpdate(data.id,userData)
       break;
 
-    case "user.created":
+    case "user.deleted":
       await userModel.findByIdAndDelete(data.id)
       break;
-  
-    default:
-      break;
+
   }
 
   return NextResponse.json({message : "Event Successful"})
