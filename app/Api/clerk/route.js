@@ -38,10 +38,10 @@ export async function POST(req){
 
     case "user.deleted":
       await userModel.findByIdAndDelete(data.id)
-      break;
+      break
 
   }
 
-  return NextResponse.json({message : "Event Successful"})
+  return NextResponse.json({message : "Event Successful"}) 
 
 }
