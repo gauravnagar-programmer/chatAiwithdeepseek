@@ -31,21 +31,23 @@ export async function POST(req) {
 
   const userData = {
     _id: data.id,
-    email: data.email_addresses?.[0]?.email_address,
+email: data.email_addresses?.[0]?.email_address || data.primary_email_address_id || "",
     name: `${data.first_name || ""} ${data.last_name || ""}`.trim(),
     image: data.image_url,
   };
+  
+if (type === "user.created" || type === "user.updated") {
+  await userModel.findByIdAndUpdate(
+    data.id,
+    userData,
+    { upsert: true, new: true }
+  );
+}
 
-  if (type === "user.created") {
-    await userModel.create(userData);
-  }
-
-  if (type === "user.updated") {
-    await userModel.findByIdAndUpdate(data.id, userData, { new: true });
-  }
 
   if (type === "user.deleted") {
     await userModel.findByIdAndDelete(data.id);
+    console.log('deleted')
   }
 
   return NextResponse.json({ message: "Event Successful" });
