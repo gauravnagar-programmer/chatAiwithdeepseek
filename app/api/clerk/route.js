@@ -1,47 +1,52 @@
-import {Webhook} from "svix"
-import Connection from "@/config/db"
-import userModel from "@/models/user"
-import { headers } from "next/headers"
-import { NextResponse } from "next/server"
+import { Webhook } from "svix";
+import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+import Connection from "@/lib/db";
+import userModel from "@/models/user";
 
-export async function POST(req){
+export async function POST(req) {
+  await Connection();
 
-  const wh = new Webhook(process.env.SIGNIN_SECRET)
-  const headerPayload =  headers()
- const svixHeaders = {
-  "svix-id": headerPayload.get("svix-id"),
-  "svix-signature": headerPayload.get("svix-signature"),
-  "svix-timestamp": headerPayload.get("svix-timestamp"),
-}
+  const payload = await req.json();
+  const body = JSON.stringify(payload);
 
-  const payload = await req.json()
-  const body = JSON.stringify(payload)
-  const {data,type} = wh.verify(body,svixHeaders)
+  const headerPayload = headers();
 
-  const userData = { 
-    _id : data.id,
-    email : data.email_addresses[0].email_address,
-    name : `${data.first_name} ${data.last_name}`,
-    image : data.image_url
+  const svixHeaders = {
+    "svix-id": headerPayload.get("svix-id"),
+    "svix-signature": headerPayload.get("svix-signature"),
+    "svix-timestamp": headerPayload.get("svix-timestamp"),
+  };
+
+  const wh = new Webhook(process.env.SIGNIN_SECRET);
+
+  let evt;
+  try {
+    evt = wh.verify(body, svixHeaders);
+  } catch (err) {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  await Connection()
+  const { data, type } = evt;
 
-  switch (type) {
-    case "user.created":
-      await userModel.create(userData)
-      break;
+  const userData = {
+    _id: data.id,
+    email: data.email_addresses?.[0]?.email_address,
+    name: `${data.first_name || ""} ${data.last_name || ""}`.trim(),
+    image: data.image_url,
+  };
 
-    case "user.updated":
-      await userModel.findByIdAndUpdate(data.id,userData)
-      break;
-
-    case "user.deleted":
-      await userModel.findByIdAndDelete(data.id)
-      break
-
+  if (type === "user.created") {
+    await userModel.create(userData);
   }
 
-  return NextResponse.json({message : "Event Successful"}) 
+  if (type === "user.updated") {
+    await userModel.findByIdAndUpdate(data.id, userData, { new: true });
+  }
 
+  if (type === "user.deleted") {
+    await userModel.findByIdAndDelete(data.id);
+  }
+
+  return NextResponse.json({ message: "Event Successful" });
 }

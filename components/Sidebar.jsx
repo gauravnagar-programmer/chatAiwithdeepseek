@@ -10,7 +10,6 @@ const Sidebar = ({ expand, setExpand }) => {
   const [openMenu, setOpenMenu] = useState({ id: 0, open: false });
   const { user,isLoaded,isSignedIn } = useUser();
 
-  console.log(user);
 
   return (
     <div
